@@ -41,6 +41,32 @@ def exec_query(query, params=None, fetch_result=False):
     except Exception as e:
         print("Unexpected error occurred: ", e)
         return None
+@app.route('/salesform', methods = ['GET'])
+def add_salesform():
+    sales_form =  """
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Text Field Form</title>
+                    </head>
+                    <body>
+                        <label for="Title">Please Enter New Sales Data</label>
+                        <form action="/add_row" method="post">
+                            <label for="field1">Store Code:</label>
+                            <input type="text" id="store_code" name="store_code"><br><br>
+                    
+                            <label for="field2">Total Sale</label>
+                            <input type="text" id="total_sale" name="total_sale"><br><br>
+                    
+                            <label for="field3">Transaction Date(YYYY-MM-DD):</label>
+                            <input type="text" id="transaction_date" name="transaction_date"><br><br>
+                    
+                            <input type="submit" value="Add Sale">
+                        </form>
+                    </body>
+                    </html>
+                    """
+    return sales_form
 
 @app.route('/data', methods = ['GET'])
 def get_data():
@@ -50,9 +76,7 @@ def get_data():
     if not start_date or not end_date:
         return jsonify({'error': 'Please provide both a start and end date.'}), 400
 
-    # NEED TO CHANGE ONCE DB SET UP
-    #query = ("SELECT * FROM table WHERE date BETWEEN {0} AND {1}"
-             #.format(start_date, end_date))
+
     query = "SELECT * FROM Sales WHERE transaction_date BETWEEN %s AND %s"
     params = (start_date, end_date)
     result = exec_query(query, params, fetch_result=True)
@@ -73,26 +97,23 @@ def get_data():
 
 @app.route('/add_row', methods=['POST'])
 def add_row():
-    data = request.json
+    data = request.form
 
-    id = data.get('id')
     store_code = data.get('store_code')
-    total_sale = data.get('total_sale')
+    total_sale = float(data.get('total_sale'))
     transaction_date = data.get('transaction_date')
 
-    if id is None or store_code is None or total_sale is None or transaction_date is None:
-        return jsonify({'error': 'Please provide id, store_id, total_sales, and date.'}), 400
+    if store_code is None or total_sale is None or transaction_date is None:
+        return jsonify({'error': 'Please provide store_code, total_sale, and transaction_date (YYYY-MM-DD).'}), 400
 
-    #query = f"INSERT INTO table (id, store_id, total_sales, date) VALUES ({id}, {store_id}, {total_sales}, {date})"
-    query = "INSERT INTO Sales (id, store_code, total_sale, transaction_date) VALUES (%s, %s, %s, %s)"
-    params = (id, store_code, total_sale, transaction_date)
-    result = exec_query(query, params, fetch_result=True)
+    query = "INSERT INTO Sales (store_code, total_sale, transaction_date) VALUES (%s, %s, %s)"
+    params = (store_code, total_sale, transaction_date)
+    result = exec_query(query, params)
 
     if result:
-        #verification_query = f"SELECT * FROM table WHERE id = {id}"
-        verification_query = "SELECT * FROM Sales WHERE id = %s"
-        new_row_params = (id,)
-        new_row = exec_query(verification_query, new_row_params)
+        verification_query = "SELECT * FROM Sales WHERE store_code = %s AND total_sale = %s AND transaction_date = %s"
+        new_row_params = (store_code, total_sale, transaction_date)
+        new_row = exec_query(verification_query, new_row_params, fetch_result=True)
         if new_row:
             return jsonify({'message': 'New row added to the database.', 'new_row': new_row}), 200
         else:
