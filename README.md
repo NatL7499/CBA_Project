@@ -1,12 +1,12 @@
-#CBA Sales Data Management Application
+# CBA Sales Data Management Application
   This Flask application is designed to manage sales data for stores. It provides functionality to add new sales records, retrieve sales data within a specified date range, and display a form for adding sales data.
 
-##Features:
+## Features:
   Add Sales Record: Users can submit a form to add new sales records to the database. The form requires the store code, total sale amount, and transaction date.
   Retrieve Sales Data: Users can retrieve sales data within a specified date range by making a GET request to the /data endpoint with the start date and end date parameters.
   Display Form: The application provides an HTML form at the /salesform endpoint for users to input sales data.
   
-##Installation:
+## Installation:
   Clone the repository:
     git clone https://github.com/NatL7499/CBA_Project.git
   Install the required dependencies:
@@ -20,7 +20,7 @@
   Run the Flask application:
     python app.py
     
-##Usage:
+## Usage:
   Access the form to add sales data:
     http://localhost:5000/salesform
     Submit the form to add new sales records to the database.
