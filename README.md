@@ -12,9 +12,10 @@
   * Install the required dependencies:
   * pip install -r requirements.txt
   
-  * Set up the MySQL database. 
-  * Ensure you have MySQL installed and running. 
-  * Create a database named Store_Data and a user with appropriate permissions. 
+
+  * Ensure you have MySQL installed and running.
+  * Restore the database using store_data.sql in MySQL WorkBench. 
+  * Create a user with appropriate permissions.
   * Update the database connection parameters (MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE) in the app.py file accordingly.
   
   * Run the Flask application:
