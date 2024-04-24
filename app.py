@@ -4,24 +4,36 @@ import pandas as pd
 
 app = Flask(__name__)
 
-def exec_query(query):
+MYSQL_HOST = ''
+MYSQL_USER = ''
+MYSQL_PASSWORD = ''
+MYSQL_DATABASE = 'Store Data'
+def exec_query(query, params=None, fetch_result=False):
     try:
         connection = mysql.connector.connect(
-            host = "",
-            user = "",
-            password = "",
-            databse = "",
+            host=MYSQL_HOST,
+            user=MYSQL_USER,
+            password=MYSQL_PASSWORD,
+            database=MYSQL_DATABASE
         )
         if connection.is_connected():
-            cursor = connection.cursor()
+            cursor = connection.cursor(dictionary=True)
+            if params:
+                cursor.execute(query, params)
+            else:
+                cursor.execute(query)
 
-            cursor.execute(query)
+            if fetch_result:
+                result = cursor.fetchall()
 
-            result = cursor.fetchall()
-
-            cursor.close()
-            connection.close()
-            return result
+                cursor.close()
+                connection.close()
+                return result
+            else:
+                connection.commit()
+                cursor.close()
+                connection.close()
+                return True
 
     except mysql.connector.Error as err:
         print("Error connecting to database: ", err)
@@ -41,8 +53,9 @@ def get_data():
     # NEED TO CHANGE ONCE DB SET UP
     #query = ("SELECT * FROM table WHERE date BETWEEN {0} AND {1}"
              #.format(start_date, end_date))
-    query = f"SELECT * FROM table WHERE date BETWEEN {start_date} AND {end_date}"
-    result = exec_query(query)
+    query = "SELECT * FROM Sales WHERE transaction_date BETWEEN %s AND %s"
+    params = (start_date, end_date)
+    result = exec_query(query, params, fetch_result=True)
 
     if result:
         json_data = {index: row for index, row in enumerate(result)}
@@ -63,25 +76,29 @@ def add_row():
     data = request.json
 
     id = data.get('id')
-    store_id = data.get('store_id')
-    total_sales = data.get('total_sales')
-    date = data.get('date')
+    store_code = data.get('store_code')
+    total_sale = data.get('total_sale')
+    transaction_date = data.get('transaction_date')
 
-    if not id or not store_id or not total_sales or not date:
+    if id is None or store_code is None or total_sale is None or transaction_date is None:
         return jsonify({'error': 'Please provide id, store_id, total_sales, and date.'}), 400
 
-    query = f"INSERT INTO table (id, store_id, total_sales, date) VALUES ({id}, {store_id}, {total_sales}, {date})"
-
-    result = exec_query(query)
+    #query = f"INSERT INTO table (id, store_id, total_sales, date) VALUES ({id}, {store_id}, {total_sales}, {date})"
+    query = "INSERT INTO Sales (id, store_code, total_sale, transaction_date) VALUES (%s, %s, %s, %s)"
+    params = (id, store_code, total_sale, transaction_date)
+    result = exec_query(query, params, fetch_result=True)
 
     if result:
-        verification_query = f"SELECT * FROM table WHERE id = {id}"
-        new_row = exec_query(verification_query)
+        #verification_query = f"SELECT * FROM table WHERE id = {id}"
+        verification_query = "SELECT * FROM Sales WHERE id = %s"
+        new_row_params = (id,)
+        new_row = exec_query(verification_query, new_row_params)
         if new_row:
             return jsonify({'message': 'New row added to the database.', 'new_row': new_row}), 200
         else:
             return jsonify({'error': 'Failed to retrieve newly added row from the database.'}), 500
     else:
-        return jsonify({'error':'Failed to add a new row to the database.'}), 500
+        return jsonify({'error': 'Failed to add a new row to the database.'}), 500
+
 if __name__ == '__main__':
     app.run(debug = True)
