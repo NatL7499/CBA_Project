@@ -4,17 +4,17 @@ import pandas as pd
 
 app = Flask(__name__)
 
-MYSQL_HOST = ''
-MYSQL_USER = ''
-MYSQL_PASSWORD = ''
-MYSQL_DATABASE = 'Store Data'
+MYSQL_HOST = 'localhost'
+MYSQL_USER = 'cba_project'
+MYSQL_PASSWORD = 'cbadata'
+MYSQL_DATABASE = 'Store_Data'
 def exec_query(query, params=None, fetch_result=False):
     try:
         connection = mysql.connector.connect(
             host=MYSQL_HOST,
             user=MYSQL_USER,
             password=MYSQL_PASSWORD,
-            database=MYSQL_DATABASE
+            database=MYSQL_DATABASE,
         )
         if connection.is_connected():
             cursor = connection.cursor(dictionary=True)
